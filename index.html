@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="node_modules/chart.js/dist/Chart.min.css">
+<title>Moving Average Line</title>
+</head>
+
+<body>
+<div id="app" class="container-fluid">
+    <div class="row">&nbsp;</div>
+    <div class="card">
+        <h5 class="card-header">Data Set</h5>
+        <div class="card-body">
+            <textarea class="form-control" name="data" v-model="data" rows="10" placeholder="請輸入資料集，好比&#10;15908&#10;15504&#10;14272&#10;13174&#10;10022"></textarea>
+            <hr />
+            <button href="#" class="btn btn-primary" v-on:click="calc">Run</button>
+        </div>
+    </div>
+    <div class="row">&nbsp;</div>
+    <div class="card">
+        <h5 class="card-header">Console Log</h5>
+        <div class="card-body">
+            <textarea class="form-control" name="console_log" v-model="console_log"></textarea>
+        </div>
+    </div>
+    <div class="row">&nbsp;</div>
+    <div class="card">
+        <h5 class="card-header">Chart</h5>
+        <div class="card-body">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+</div>
+<script src="node_modules/chart.js/dist/Chart.min.js"></script>
+<script src="node_modules/vue/dist/vue.min.js"></script>
+<script>
+var app = new Vue({
+    el: '#app',
+    data: {
+        data: '',
+        console_log: ''
+    },
+    methods: {
+        calc: function() {
+            let params = this.data.split("\n");
+            let length = params.length;
+            let total = 0;
+            let average = 0;
+            for (let i = 0; i < length; i++) {
+                if (isNaN(params[i])) {
+                    this.console_log = '[Error] 第' + (i + 1) + '行值不為數字';
+                    return;
+                }
+                params[i] = parseInt(params[i]);
+                total += params[i];
+            }
+            average = Math.ceil(total / length)
+            this.console_log = '第' + (length + 1) + '次的預測值為' + average;
+            params.push(average);
+            this.draw(params); 
+        },
+        draw: function(params) {
+            let length = params.length;
+            let labels = [];
+
+            for (let i = 0; i < length; i++) {
+                labels.push('第' + (i + 1) + '次');
+            }
+
+            let config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'My Forecast',
+                        data: params,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Moving Average'
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Count'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value'
+                            }
+                        }]
+                    }
+                }
+            }
+
+            let ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+        }
+    }
+});
+</script>
+</body>
+
+</html> 
